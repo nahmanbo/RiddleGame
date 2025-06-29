@@ -13,9 +13,9 @@ export default class Game {
 
   //--------------------------------------------------------------
   createPlayer() {
-    console.log("Welcome to the Riddle Game!");
+    console.log("\nWelcome to the Riddle Game!");
     const name = readline.question("What is your name? ");
-    console.log(`Hello, ${name}! Let's start.\n`);
+    console.log(`\nWelcome, ${name}! Let's get started.\n`);
     return new Player(name);
   }
 

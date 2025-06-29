@@ -28,14 +28,14 @@ export default class Player {
       
     //--------------------------------------------------------------
     showStats() {
-        const totalTime = this.getTotalTime();
-        const riddleCount = this.getRiddleCount();
-        const avgTime = totalTime / riddleCount;
-    
-        console.log(`Great job, ${this.name}!
-                    Total time: ${totalTime}
-                    Average per riddle: ${avgTime}`);
-      }
-      
+      const totalTime = this.getTotalTime();
+      const riddleCount = this.getRiddleCount();
+      const avgTime = (totalTime / riddleCount).toFixed(2);
+  
+      console.log(`\nGreat job, ${this.name}!`);
+      console.log(`You answered ${riddleCount} riddles.`);
+      console.log(`Total time: ${totalTime} seconds`);
+      console.log(`Average time per riddle: ${avgTime} seconds\n`);
   }
+}
   
