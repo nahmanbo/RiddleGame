@@ -1,0 +1,12 @@
+# Node modules
+node_modules/
+
+# Logs
+*.log
+
+# System files
+.DS_Store
+
+# Optional: ignore compiled files
+*.out
+*.exe
