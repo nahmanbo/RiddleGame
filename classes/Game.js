@@ -20,7 +20,7 @@ export default class Game {
   }
 
   //--------------------------------------------------------------
-  loadRiddles() {
+  loadRiddlesBY(key, value) {
     const riddlesArray = [];
 
     for (let riddleObj of allRiddles) {

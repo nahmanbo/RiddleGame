@@ -1,7 +1,10 @@
 export default {
-    id: 2,
-    name: "Medium leve Math",
-    taskDescription: "What is 15 * 3?",
-    correctAnswer: "45"
-  };
+  id: 2,
+  subject: "Math",
+  difficulty: "Medium",
+  name: "Multiplication with Two Digits",
+  taskDescription: "What is 12 x 4?",
+  correctAnswer: "48"
+}
+
   

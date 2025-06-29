@@ -1,7 +1,10 @@
 export default {
-    id: 1,
-    name: "Easy level Math",
-    taskDescription: "What is 4 + 6?",
-    correctAnswer: "10"
-  };
+  id: 1,
+  subject: "Math",
+  difficulty: "Easy",
+  name: "Simple Addition",
+  taskDescription: "What is 4 + 5?",
+  correctAnswer: "9"
+}
+
   
