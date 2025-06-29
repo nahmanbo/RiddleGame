@@ -8,7 +8,7 @@ export default class Game {
   //====================================
   constructor() {
     this.player = this.createPlayer();
-    this.riddles = this.loadRiddles();
+    this.riddles = this.loadRiddlesByKeyAndValue("difficulty", "Easy");
   }
 
   //--------------------------------------------------------------
@@ -20,19 +20,23 @@ export default class Game {
   }
 
   //--------------------------------------------------------------
-  loadRiddlesBY(key, value) {
+  loadRiddlesByKeyAndValue(key, value) {
     const riddlesArray = [];
 
     for (let riddleObj of allRiddles) {
-      const riddle = new Riddle(
-        riddleObj.id,
-        riddleObj.name,
-        riddleObj.taskDescription,
-        riddleObj.correctAnswer
-      );
-      riddlesArray.push(riddle);
-    }
+      if(riddleObj[key] === value)
+      {
+        const riddle = new Riddle(
+          riddleObj.id,
+          riddleObj.subject,
+          riddleObj.difficulty,
+          riddleObj.taskDescription,
+          riddleObj.correctAnswer
+        );
+        riddlesArray.push(riddle);
 
+      }
+    }
     return riddlesArray;
   }
 
