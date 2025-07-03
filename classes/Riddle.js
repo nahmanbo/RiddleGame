@@ -1,10 +1,12 @@
 import readline from 'readline-sync';
 
 export default class Riddle {
-    
-//====================================
-constructor(id, subject, difficulty, taskDescription, correctAnswer) {
-    this.id = id;
+
+  static lastId = 21;
+
+  //====================================
+  constructor(subject, difficulty, taskDescription, correctAnswer) {
+    this.id = ++Riddle.lastId;
     this.subject = subject;
     this.difficulty = difficulty;
     this.taskDescription = taskDescription;
@@ -27,5 +29,14 @@ constructor(id, subject, difficulty, taskDescription, correctAnswer) {
   
     console.log("Correct!\n");
   }
-  
+
+  //--------------------------------------------------------------
+  static createFromUserInput() {
+    const subject = readline.question("Enter riddle subject: ");
+    const difficulty = readline.question("Enter riddle difficulty: ");
+    const taskDescription = readline.question("Enter riddle task description: ");
+    const correctAnswer = readline.question("Enter correct answer: ");
+    
+    return new Riddle(subject, difficulty, taskDescription, correctAnswer);
+  }
 }

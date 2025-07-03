@@ -68,5 +68,12 @@
     "difficulty": "Medium",
     "taskDescription": "What is 5 x 5?",
     "correctAnswer": "25"
+  },
+  {
+    "id": 22,
+    "subject": "Math",
+    "difficulty": "Medium",
+    "taskDescription": "What is 21 x 45?",
+    "correctAnswer": "945"
   }
 ]
