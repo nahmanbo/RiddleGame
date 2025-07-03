@@ -1,6 +1,6 @@
 import { readFile, writeFile } from "node:fs/promises";
 
-export async function CreateObjDb(obj, filePath) {
+export async function createData(obj, filePath) {
     try {
         const fileData = await readFile(filePath, "utf8");
         const arr = JSON.parse(fileData);
