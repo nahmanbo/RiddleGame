@@ -1,20 +1,42 @@
 import readline from 'readline-sync';
 
 export default class Riddle {
-    
-//====================================
-constructor(id, subject, difficulty, taskDescription, correctAnswer) {
-    this.id = id;
+
+  static lastRiddelId = 21;
+
+  //====================================
+  constructor(subject, difficulty, taskDescription, correctAnswer) {
+    this.id = ++Riddle.lastRiddelId;
     this.subject = subject;
     this.difficulty = difficulty;
     this.taskDescription = taskDescription;
     this.correctAnswer = correctAnswer;
   }
-  
-  //--------------------------------------------------------------
-  ask() {
+
+    //--------------------------------------------------------------
+    static createFromUserInput() {
+    const subject = readline.question("Enter riddle subject: ");
+    const difficulty = readline.question("Enter riddle difficulty: ");
+    const taskDescription = readline.question("Enter riddle task description: ");
+    const correctAnswer = readline.question("Enter correct answer: ");
+    
+    return new Riddle(subject, difficulty, taskDescription, correctAnswer);
+  }
+
+    //--------------------------------------------------------------
+    printRiddle() {
+    console.log(`--- Riddle ${this.id} ---`);
+    console.log(`Subject: ${this.subject}`);
+    console.log(`Difficulty: ${this.difficulty}`);
+    console.log(`Task: ${this.taskDescription}`);
+    console.log(`Correct Answer: ${this.correctAnswer}`);
+    console.log('----------------------\n');
+  }
+
+    //--------------------------------------------------------------
+    ask() {
     let answer;
-  
+    
     do {
       console.log(`Riddle ${this.id}: ${this.difficulty} ${this.subject}`);
       console.log(this.taskDescription);
@@ -24,8 +46,7 @@ constructor(id, subject, difficulty, taskDescription, correctAnswer) {
       }
     } 
     while (answer !== this.correctAnswer);
-  
+    
     console.log("Correct!\n");
   }
-  
 }
