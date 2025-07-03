@@ -2,19 +2,19 @@ import readline from 'readline-sync';
 
 export default class Riddle {
 
-  static lastId = 21;
+  static lastRiddelId = 21;
 
   //====================================
   constructor(subject, difficulty, taskDescription, correctAnswer) {
-    this.id = ++Riddle.lastId;
+    this.id = ++Riddle.lastRiddelId;
     this.subject = subject;
     this.difficulty = difficulty;
     this.taskDescription = taskDescription;
     this.correctAnswer = correctAnswer;
   }
 
-  //====================================
-  static createFromUserInput() {
+    //--------------------------------------------------------------
+    static createFromUserInput() {
     const subject = readline.question("Enter riddle subject: ");
     const difficulty = readline.question("Enter riddle difficulty: ");
     const taskDescription = readline.question("Enter riddle task description: ");
@@ -23,8 +23,8 @@ export default class Riddle {
     return new Riddle(subject, difficulty, taskDescription, correctAnswer);
   }
 
-  //====================================
-  printRiddle() {
+    //--------------------------------------------------------------
+    printRiddle() {
     console.log(`--- Riddle ${this.id} ---`);
     console.log(`Subject: ${this.subject}`);
     console.log(`Difficulty: ${this.difficulty}`);
@@ -33,8 +33,8 @@ export default class Riddle {
     console.log('----------------------\n');
   }
 
-  //====================================
-  ask() {
+    //--------------------------------------------------------------
+    ask() {
     let answer;
     
     do {
