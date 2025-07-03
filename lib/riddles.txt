@@ -75,5 +75,12 @@
     "difficulty": "Medium",
     "taskDescription": "What is 21 x 45?",
     "correctAnswer": "945"
+  },
+  {
+    "id": 23,
+    "subject": "Math",
+    "difficulty": "Easy",
+    "taskDescription": "What is 121 + 121?",
+    "correctAnswer": "242"
   }
 ]
