@@ -1,41 +1,68 @@
 export default class Player {
-    //====================================
-    constructor(name) {
-      this.name = name;
-      this.times = {}; 
-    }
-  
-    //--------------------------------------------------------------
-    recordTime(id, time) {
-        this.times[id] = time;
-      }
-    
-    //--------------------------------------------------------------
-    getTotalTime() {
-        let sum = 0;
-    
-        for (let key in this.times) {
-          sum = sum + this.times[key];
-        }
-    
-        return sum;
-      }
 
-    //--------------------------------------------------------------
-    getRiddleCount() {
-        return Object.keys(this.times).length;
-      }
-      
-    //--------------------------------------------------------------
-    showStats() {
-      const totalTime = this.getTotalTime();
-      const riddleCount = this.getRiddleCount();
-      const avgTime = (totalTime / riddleCount).toFixed(2);
-  
-      console.log(`\nGreat job, ${this.name}!`);
-      console.log(`You answered ${riddleCount} riddles.`);
-      console.log(`Total time: ${totalTime} seconds`);
-      console.log(`Average time per riddle: ${avgTime} seconds\n`);
+  static lastPlayerId = 0;
+
+  //====================================
+  constructor(name) {
+    this.id = ++Player.lastPlayerId;
+    this.name = name;
+
+    this.solvedRiddles = {
+      Easy: [],
+      Medium: [],
+      Hard: []
+    };
+
+    this.solvedTimes = {
+      Easy: [],
+      Medium: [],
+      Hard: []
+    };
+  }
+
+  //--------------------------------------------------------------
+  recordTime(difficulty, time) {
+    this.solvedTimes[difficulty].push(time);
+  }
+
+  //--------------------------------------------------------------
+  recordId(difficulty, id) {
+    this.solvedRiddles[difficulty].push(id);
+  }
+
+  //--------------------------------------------------------------
+  getTotalTimeByLevel(difficulty) {
+    let sum = 0;
+    for (let time of this.solvedTimes[difficulty]) {
+      sum += time;
+    }
+    return sum;
+  }
+
+  //--------------------------------------------------------------
+  getRiddleCountByLevel(difficulty) {
+    return this.solvedRiddles[difficulty].length;
+  }
+
+  //--------------------------------------------------------------
+  getAvgTime(difficulty) {
+    const times = this.solvedTimes[difficulty];
+    if (times.length === 0) return 0;
+    return (times.reduce((acc, t) => acc + t, 0) / times.length).toFixed(2);
+  }
+
+  //--------------------------------------------------------------
+  showCompactStats() {
+    console.log(`ID: ${this.id}, Name: ${this.name}`);
+
+    console.log(`Easy Riddles: ${this.solvedRiddles.Easy.join(", ")}`);
+    console.log(`Medium Riddles: ${this.solvedRiddles.Medium.join(", ")}`);
+    console.log(`Hard Riddles: ${this.solvedRiddles.Hard.join(", ")}`);
+
+    const easyAvg = this.getAvgTime("Easy");
+    const medAvg = this.getAvgTime("Medium");
+    const hardAvg = this.getAvgTime("Hard");
+
+    console.log(`Average Times - Easy: ${easyAvg}s, Medium: ${medAvg}s, Hard: ${hardAvg}s`);
   }
 }
-  
