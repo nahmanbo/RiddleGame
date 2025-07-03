@@ -13,7 +13,6 @@ export default class Game {
 
   //--------------------------------------------------------------
   createPlayer() {
-    console.log("\nWelcome to the Riddle Game!");
     const name = readline.question("What is your name? ");
     console.log(`\nWelcome, ${name}! Let's get started.\n`);
     return new Player(name);
@@ -78,6 +77,7 @@ loadAllRiddlesSorted() {
 
   //--------------------------------------------------------------
   start() {
+    console.log("\nWelcome to the Riddle Game!");
     this.playAllRiddles();
     this.showFinalStats();
   }
