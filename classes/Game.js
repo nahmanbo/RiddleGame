@@ -3,7 +3,8 @@ import Riddle from './Riddle.js';
 import Player from './Player.js';
 import { readData } from '../services/read.js';
 import { createData } from '../services/create.js';
-import { writeFile } from 'node:fs/promises';
+import { updateData } from '../services/update.js';
+import { deleteData } from '../services/delete.js';
 
 export default class Game {
 
@@ -18,13 +19,13 @@ export default class Game {
     console.log("\n--- Welcome to the Riddle Game ---");
 
     while (true) {
-      this.showMainMenu();
+      this.printMainMenu();
       const choice = readline.question("Choose an option (1-3): ");
 
       if (choice === "1") {
-        await this.handlePlayGame();
+        await this.playGame();
       } else if (choice === "2") {
-        await this.handleCrudMenu();
+        await this.manageRiddles();
       } else if (choice === "3") {
         console.log("Goodbye!");
         break;
@@ -35,7 +36,7 @@ export default class Game {
   }
 
   //--------------------------------------------------------------
-  showMainMenu() {
+  printMainMenu() {
     console.log("\nMain Menu:");
     console.log("1. Play Game");
     console.log("2. Manage Riddles (CRUD)");
@@ -43,71 +44,66 @@ export default class Game {
   }
 
   //--------------------------------------------------------------
-  async handlePlayGame() {
+  async playGame() {
     const name = readline.question("\nEnter your name: ");
     await this.loadPlayers();
 
-    this.currentPlayer = this.findOrCreatePlayer(name);
-
-    await this.loadAllRiddles();
-
-    if (await this.playRiddleLevel("Easy")) return;
-    if (await this.playRiddleLevel("Medium")) return;
-    if (await this.playRiddleLevel("Hard")) return;
-
-    console.log("\nYour Stats:");
-    this.currentPlayer.showCompactStats();
-
-    await this.savePlayers();
-  }
-
-  //--------------------------------------------------------------
-  findOrCreatePlayer(name) {
     let player = this.players.find(p => p.name === name);
 
     if (!player) {
       console.log("New player registered.");
       player = new Player(name);
+      await createData(player, "./lib/players.txt");
       this.players.push(player);
     }
 
-    return player;
+    this.currentPlayer = player;
+
+    await this.loadAllRiddles();
+
+    if (await this.playRiddlesByDifficulty("Easy")) return;
+    if (await this.playRiddlesByDifficulty("Medium")) return;
+    if (await this.playRiddlesByDifficulty("Hard")) return;
+
+    console.log("\nYour Stats:");
+    this.currentPlayer.showCompactStats();
+
+    await updateData(this.currentPlayer, "./lib/players.txt");
   }
 
   //--------------------------------------------------------------
-  async handleCrudMenu() {
-    this.showCrudMenu();
+  async manageRiddles() {
+    console.log("\nCRUD Menu:");
+    console.log("1. Create Riddle");
+    console.log("2. Read Riddles");
+    console.log("3. Delete Riddle");
+    console.log("4. Back");
+
     const choice = readline.question("Choose an option (1-4): ");
 
     if (choice === "1") {
-      await this.createNewRiddle();
+      await this.createRiddle();
     } else if (choice === "2") {
-      await this.displayAllRiddles();
+      await this.showAllRiddles();
+    } else if (choice === "3") {
+      await this.deleteRiddle();
+    } else if (choice === "4") {
+      return;
     } else {
-      console.log("Option not implemented yet.\n");
+      console.log("Invalid choice.\n");
     }
   }
 
   //--------------------------------------------------------------
-  showCrudMenu() {
-    console.log("\nCRUD Menu:");
-    console.log("1. Create Riddle");
-    console.log("2. Read Riddles");
-    console.log("3. Update Riddle (Not implemented)");
-    console.log("4. Delete Riddle (Not implemented)");
-  }
-
-  //--------------------------------------------------------------
-  async createNewRiddle() {
+  async createRiddle() {
     const newRiddle = Riddle.createFromUserInput();
     await createData(newRiddle, "./lib/riddles.txt");
     console.log("Riddle added successfully.\n");
   }
 
   //--------------------------------------------------------------
-  async displayAllRiddles() {
+  async showAllRiddles() {
     const riddles = await readData("./lib/riddles.txt");
-
     riddles.forEach(r => {
       const riddle = new Riddle(r.subject, r.difficulty, r.taskDescription, r.correctAnswer, r.id);
       riddle.printRiddle();
@@ -115,10 +111,16 @@ export default class Game {
   }
 
   //--------------------------------------------------------------
-  async loadAllRiddles() {
-    this.riddles = [];
+  async deleteRiddle() {
+    const id = parseInt(readline.question("Enter riddle ID to delete: "));
+    await deleteData(id, "./lib/riddles.txt");
+    console.log("Riddle deleted if found.\n");
+  }
 
+  //--------------------------------------------------------------
+  async loadAllRiddles() {
     const difficulties = ["Easy", "Medium", "Hard"];
+    this.riddles = [];
 
     for (let difficulty of difficulties) {
       const riddles = await readData("./lib/riddles.txt", { difficulty });
@@ -130,26 +132,26 @@ export default class Game {
   }
 
   //--------------------------------------------------------------
-  async playRiddleLevel(difficulty) {
-    const availableRiddles = this.riddles.filter(r =>
+  async playRiddlesByDifficulty(difficulty) {
+    const riddlesToPlay = this.riddles.filter(r =>
       r.difficulty === difficulty &&
       !this.currentPlayer.solvedRiddles[difficulty].includes(r.id)
     );
 
-    if (availableRiddles.length === 0) {
+    if (riddlesToPlay.length === 0) {
       console.log(`\nNo new ${difficulty} riddles available.`);
       return false;
     }
 
     console.log(`\nStarting ${difficulty} riddles...`);
 
-    for (let riddle of availableRiddles) {
+    for (let riddle of riddlesToPlay) {
       const startTime = Date.now();
       const result = riddle.ask();
 
       if (result === "exit") {
         console.log("Exiting to main menu...\n");
-        await this.savePlayers();
+        await updateData(this.currentPlayer, "./lib/players.txt");
         return true;
       }
 
@@ -167,7 +169,6 @@ export default class Game {
   async loadPlayers() {
     try {
       const playersData = await readData("./lib/players.txt");
-
       this.players = playersData.map(p => {
         const player = new Player(p.name);
         player.id = p.id;
@@ -177,15 +178,6 @@ export default class Game {
       });
     } catch {
       this.players = [];
-    }
-  }
-
-  //--------------------------------------------------------------
-  async savePlayers() {
-    try {
-      await writeFile("./lib/players.txt", JSON.stringify(this.players, null, 2));
-    } catch (err) {
-      console.error("Error saving players:", err.message);
     }
   }
 }
