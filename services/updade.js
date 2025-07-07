@@ -7,7 +7,7 @@ export async function updateData(updatedObj, filePath) {
 
         const index = arr.findIndex(obj => obj.id === updatedObj.id);
         if (index === -1) {
-            console.log("Object not found for update.");
+            console.log("Object not found for update");
             return;
         }
 
