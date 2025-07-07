@@ -1,103 +1,191 @@
-// import readline from 'readline-sync';
-// import allRiddles from '../riddles/allRiddles.js';
-// import Riddle from './Riddle.js';
-// import Player from './Player.js';
+import readline from 'readline-sync';
+import Riddle from './Riddle.js';
+import Player from './Player.js';
+import { readData } from '../services/read.js';
+import { createData } from '../services/create.js';
+import { writeFile } from 'node:fs/promises';
 
-// export default class Game {
+export default class Game {
 
-//   //====================================
-//   constructor() {
-//     this.player = this.createPlayer();
-//     this.riddles = this.chooseDifficultyAndLoadRiddles();
-//   }
+  constructor() {
+    this.riddles = [];
+    this.players = [];
+    this.currentPlayer = null;
+  }
 
-//   //--------------------------------------------------------------
-//   createPlayer() {
-//     const name = readline.question("What is your name? ");
-//     console.log(`\nWelcome, ${name}! Let's get started.\n`);
-//     return new Player(name);
-//   }
+  //--------------------------------------------------------------
+  async start() {
+    console.log("\n--- Welcome to the Riddle Game ---");
 
-//   //--------------------------------------------------------------
-//   chooseDifficultyAndLoadRiddles() {
-//     console.log("Choose difficulty level:");
-//     console.log("1. Easy");
-//     console.log("2. Medium");
-//     console.log("3. Hard");
-//     console.log("4. All");
+    while (true) {
+      this.showMainMenu();
+      const choice = readline.question("Choose an option (1-3): ");
 
-//     let choice = readline.question("Enter your choice (1-4): ");
+      if (choice === "1") {
+        await this.handlePlayGame();
+      } else if (choice === "2") {
+        await this.handleCrudMenu();
+      } else if (choice === "3") {
+        console.log("Goodbye!");
+        break;
+      } else {
+        console.log("Invalid choice, try again.\n");
+      }
+    }
+  }
 
-//     while (!["1", "2", "3", "4"].includes(choice)) {
-//       console.log("Invalid choice. Please select 1, 2, 3, or 4.");
-//       choice = readline.question("Enter your choice (1-4): ");
-//     }
+  //--------------------------------------------------------------
+  showMainMenu() {
+    console.log("\nMain Menu:");
+    console.log("1. Play Game");
+    console.log("2. Manage Riddles (CRUD)");
+    console.log("3. Exit");
+  }
 
-//     switch (choice) {
-//       case "1":
-//         return this.loadRiddlesByKeyAndValue("difficulty", "Easy");
-//       case "2":
-//         return this.loadRiddlesByKeyAndValue("difficulty", "Medium");
-//       case "3":
-//         return this.loadRiddlesByKeyAndValue("difficulty", "Hard");
-//       case "4":
-//         return this.loadAllRiddlesSorted();
-//     }
-//   }
+  //--------------------------------------------------------------
+  async handlePlayGame() {
+    const name = readline.question("\nEnter your name: ");
+    await this.loadPlayers();
 
-//   //--------------------------------------------------------------
-//   loadRiddlesByKeyAndValue(key, value) {
-//     const riddlesArray = [];
+    this.currentPlayer = this.findOrCreatePlayer(name);
 
-//     for (let riddleObj of allRiddles) {
-//       if (riddleObj[key] === value) {
-//         const riddle = new Riddle(
-//           riddleObj.id,
-//           riddleObj.subject,
-//           riddleObj.difficulty,
-//           riddleObj.taskDescription,
-//           riddleObj.correctAnswer
-//         );
-//         riddlesArray.push(riddle);
-//       }
-//     }
+    await this.loadAllRiddles();
 
-//     return riddlesArray;
-//   }
+    if (await this.playRiddleLevel("Easy")) return;
+    if (await this.playRiddleLevel("Medium")) return;
+    if (await this.playRiddleLevel("Hard")) return;
 
-// //--------------------------------------------------------------
-// loadAllRiddlesSorted() {
-//   const easyRiddles = this.loadRiddlesByKeyAndValue("difficulty", "Easy");
-//   const mediumRiddles = this.loadRiddlesByKeyAndValue("difficulty", "Medium");
-//   const hardRiddles = this.loadRiddlesByKeyAndValue("difficulty", "Hard");
+    console.log("\nYour Stats:");
+    this.currentPlayer.showCompactStats();
 
-//   return [...easyRiddles, ...mediumRiddles, ...hardRiddles];
-// }
+    await this.savePlayers();
+  }
 
+  //--------------------------------------------------------------
+  findOrCreatePlayer(name) {
+    let player = this.players.find(p => p.name === name);
 
-//   //--------------------------------------------------------------
-//   start() {
-//     console.log("\nWelcome to the Riddle Game!");
-//     this.playAllRiddles();
-//     this.showFinalStats();
-//   }
+    if (!player) {
+      console.log("New player registered.");
+      player = new Player(name);
+      this.players.push(player);
+    }
 
-//   //--------------------------------------------------------------
-//   playAllRiddles() {
-//     for (let riddle of this.riddles) {
-//       const startTime = Date.now();
-//       riddle.ask();
-//       const endTime = Date.now();
+    return player;
+  }
 
-//       const timeTaken = Math.round((endTime - startTime) / 1000);
-//       this.player.recordTime(riddle.id, timeTaken);
+  //--------------------------------------------------------------
+  async handleCrudMenu() {
+    this.showCrudMenu();
+    const choice = readline.question("Choose an option (1-4): ");
 
-//       console.log();
-//     }
-//   }
+    if (choice === "1") {
+      await this.createNewRiddle();
+    } else if (choice === "2") {
+      await this.displayAllRiddles();
+    } else {
+      console.log("Option not implemented yet.\n");
+    }
+  }
 
-//   //--------------------------------------------------------------
-//   showFinalStats() {
-//     this.player.showStats();
-//   }
-// }
+  //--------------------------------------------------------------
+  showCrudMenu() {
+    console.log("\nCRUD Menu:");
+    console.log("1. Create Riddle");
+    console.log("2. Read Riddles");
+    console.log("3. Update Riddle (Not implemented)");
+    console.log("4. Delete Riddle (Not implemented)");
+  }
+
+  //--------------------------------------------------------------
+  async createNewRiddle() {
+    const newRiddle = Riddle.createFromUserInput();
+    await createData(newRiddle, "./lib/riddles.txt");
+    console.log("Riddle added successfully.\n");
+  }
+
+  //--------------------------------------------------------------
+  async displayAllRiddles() {
+    const riddles = await readData("./lib/riddles.txt");
+
+    riddles.forEach(r => {
+      const riddle = new Riddle(r.subject, r.difficulty, r.taskDescription, r.correctAnswer, r.id);
+      riddle.printRiddle();
+    });
+  }
+
+  //--------------------------------------------------------------
+  async loadAllRiddles() {
+    this.riddles = [];
+
+    const difficulties = ["Easy", "Medium", "Hard"];
+
+    for (let difficulty of difficulties) {
+      const riddles = await readData("./lib/riddles.txt", { difficulty });
+      riddles.forEach(r => {
+        const riddle = new Riddle(r.subject, r.difficulty, r.taskDescription, r.correctAnswer, r.id);
+        this.riddles.push(riddle);
+      });
+    }
+  }
+
+  //--------------------------------------------------------------
+  async playRiddleLevel(difficulty) {
+    const availableRiddles = this.riddles.filter(r =>
+      r.difficulty === difficulty &&
+      !this.currentPlayer.solvedRiddles[difficulty].includes(r.id)
+    );
+
+    if (availableRiddles.length === 0) {
+      console.log(`\nNo new ${difficulty} riddles available.`);
+      return false;
+    }
+
+    console.log(`\nStarting ${difficulty} riddles...`);
+
+    for (let riddle of availableRiddles) {
+      const startTime = Date.now();
+      const result = riddle.ask();
+
+      if (result === "exit") {
+        console.log("Exiting to main menu...\n");
+        await this.savePlayers();
+        return true;
+      }
+
+      const endTime = Date.now();
+      const timeTaken = Math.round((endTime - startTime) / 1000);
+
+      this.currentPlayer.recordTime(difficulty, timeTaken);
+      this.currentPlayer.recordId(difficulty, riddle.id);
+    }
+
+    return false;
+  }
+
+  //--------------------------------------------------------------
+  async loadPlayers() {
+    try {
+      const playersData = await readData("./lib/players.txt");
+
+      this.players = playersData.map(p => {
+        const player = new Player(p.name);
+        player.id = p.id;
+        player.solvedRiddles = p.solvedRiddles;
+        player.solvedTimes = p.solvedTimes;
+        return player;
+      });
+    } catch {
+      this.players = [];
+    }
+  }
+
+  //--------------------------------------------------------------
+  async savePlayers() {
+    try {
+      await writeFile("./lib/players.txt", JSON.stringify(this.players, null, 2));
+    } catch (err) {
+      console.error("Error saving players:", err.message);
+    }
+  }
+}

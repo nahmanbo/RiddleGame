@@ -5,16 +5,16 @@ export default class Riddle {
   static lastRiddelId = 21;
 
   //====================================
-  constructor(subject, difficulty, taskDescription, correctAnswer) {
-    this.id = ++Riddle.lastRiddelId;
+  constructor(subject, difficulty, taskDescription, correctAnswer, id = null) {
+    this.id = id ?? ++Riddle.lastRiddelId;
     this.subject = subject;
     this.difficulty = difficulty;
     this.taskDescription = taskDescription;
     this.correctAnswer = correctAnswer;
   }
 
-    //--------------------------------------------------------------
-    static createFromUserInput() {
+  //--------------------------------------------------------------
+  static createFromUserInput() {
     const subject = readline.question("Enter riddle subject: ");
     const difficulty = readline.question("Enter riddle difficulty: ");
     const taskDescription = readline.question("Enter riddle task description: ");
@@ -23,8 +23,8 @@ export default class Riddle {
     return new Riddle(subject, difficulty, taskDescription, correctAnswer);
   }
 
-    //--------------------------------------------------------------
-    printRiddle() {
+  //--------------------------------------------------------------
+  printRiddle() {
     console.log(`--- Riddle ${this.id} ---`);
     console.log(`Subject: ${this.subject}`);
     console.log(`Difficulty: ${this.difficulty}`);
@@ -33,20 +33,25 @@ export default class Riddle {
     console.log('----------------------\n');
   }
 
-    //--------------------------------------------------------------
-    ask() {
+  //--------------------------------------------------------------
+  ask() {
     let answer;
-    
+
     do {
       console.log(`Riddle ${this.id}: ${this.difficulty} ${this.subject}`);
       console.log(this.taskDescription);
-      answer = readline.question("Your answer: ");
+      answer = readline.question("Your answer (or type 'exit' to stop): ");
+
+      if (answer.toLowerCase() === "exit") {
+        return "exit";
+      }
+
       if (answer !== this.correctAnswer) {
         console.log("Incorrect answer, try again.\n");
       }
     } 
     while (answer !== this.correctAnswer);
-    
+
     console.log("Correct!\n");
   }
 }

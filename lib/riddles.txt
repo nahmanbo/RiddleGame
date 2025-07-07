@@ -82,5 +82,12 @@
     "difficulty": "Easy",
     "taskDescription": "What is 121 + 121?",
     "correctAnswer": "242"
+  },
+  {
+    "id": 22,
+    "subject": "Math",
+    "difficulty": "Medium",
+    "taskDescription": "450 x 12?",
+    "correctAnswer": "5400"
   }
 ]
