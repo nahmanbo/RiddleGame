@@ -1,12 +1,9 @@
-import readline from 'readline-sync';
+import readline from "readline-sync";
+import { getNextId } from "../utils/idHelper.js";
 
 export default class Riddle {
-
-  static lastRiddelId = 21;
-
-  //====================================
   constructor(subject, difficulty, taskDescription, correctAnswer, id = null) {
-    this.id = id ?? ++Riddle.lastRiddelId;
+    this.id = id;
     this.subject = subject;
     this.difficulty = difficulty;
     this.taskDescription = taskDescription;
@@ -14,15 +11,16 @@ export default class Riddle {
   }
 
   //--------------------------------------------------------------
-  static createFromUserInput() {
+  static async createFromUserInput() {
     const subject = readline.question("Enter riddle subject: ");
     const difficulty = readline.question("Enter riddle difficulty: ");
     const taskDescription = readline.question("Enter riddle task description: ");
     const correctAnswer = readline.question("Enter correct answer: ");
-    
-    return new Riddle(subject, difficulty, taskDescription, correctAnswer);
-  }
 
+    const id = await getNextId("riddles");
+    return new Riddle(subject, difficulty, taskDescription, correctAnswer, id);
+  }
+  
   //--------------------------------------------------------------
   printRiddle() {
     console.log(`--- Riddle ${this.id} ---`);
@@ -36,21 +34,14 @@ export default class Riddle {
   //--------------------------------------------------------------
   ask() {
     let answer;
-
     do {
       console.log(`Riddle ${this.id}: ${this.difficulty} ${this.subject}`);
       console.log(this.taskDescription);
       answer = readline.question("Your answer (or type 'exit' to stop): ");
 
-      if (answer.toLowerCase() === "exit") {
-        return "exit";
-      }
-
-      if (answer !== this.correctAnswer) {
-        console.log("Incorrect answer, try again.\n");
-      }
-    } 
-    while (answer !== this.correctAnswer);
+      if (answer.toLowerCase() === "exit") return "exit";
+      if (answer !== this.correctAnswer) console.log("Incorrect answer, try again.\n");
+    } while (answer !== this.correctAnswer);
 
     console.log("Correct!\n");
   }
