@@ -2,9 +2,12 @@ import readline from "readline-sync";
 import Riddle from "./Riddle.js";
 import Player from "./Player.js";
 
+const BASE_URL = global.BASE_URL || "http://localhost:1212";
+
 //====================================
 export async function playGame() {
   const name = readline.question("\nEnter your name: ");
+
   const res = await fetch(`${BASE_URL}/players`);
   const players = await res.json();
 
@@ -13,16 +16,16 @@ export async function playGame() {
 
   if (!playerData) {
     console.log("New player registered.");
-    player = new Player(name);
-    const saved = await fetch(`${BASE_URL}/players`, {
+    const createRes = await fetch(`${BASE_URL}/players`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(player)
+      body: JSON.stringify({ name })
     });
-    playerData = await saved.json();
+
+    playerData = await createRes.json();
   }
 
-  player = Object.assign(new Player(playerData.name), playerData); // rehydrate class
+  player = Player.fromSupabaseRecord(playerData);
 
   const riddlesRes = await fetch(`${BASE_URL}/riddles`);
   const riddlesData = await riddlesRes.json();
@@ -31,13 +34,10 @@ export async function playGame() {
   const difficulties = ["Easy", "Medium", "Hard"];
 
   for (const diff of difficulties) {
-    const toSolve = riddles.filter(r =>
-      r.difficulty === diff &&
-      !player.solvedRiddles[diff].includes(r.id)
-    );
+    const toSolve = riddles.filter(r => r.difficulty === diff);
 
     if (toSolve.length === 0) {
-      console.log(`\nNo new ${diff} riddles.`);
+      console.log(`\nNo ${diff} riddles.`);
       continue;
     }
 
@@ -45,29 +45,20 @@ export async function playGame() {
 
     for (const r of toSolve) {
       const result = r.ask();
-      if (result === "exit") {
-        await updatePlayer(player);
-        return;
-      }
+      if (result === "exit") return;
 
       const seconds = Math.floor(Math.random() * 30) + 5;
-      player.recordId(diff, r.id);
-      player.recordTime(diff, seconds);
+
+      try {
+        await player.solveRiddle(r.id, diff, seconds);
+        console.log(`✅ Solved in ${seconds} seconds`);
+      } catch (err) {
+        console.log("❌ Failed to save solution:", err.message);
+      }
     }
   }
 
-  console.log("\nYour Stats:");
-  player.showCompactStats();
-  await updatePlayer(player);
-}
-
-//====================================
-async function updatePlayer(player) {
-  await fetch(`${BASE_URL}/players/${player.id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(player)
-  });
+  console.log("\nGame over! (Stats available via leaderboard)");
 }
 
 //====================================
@@ -115,14 +106,11 @@ export async function deleteRiddle() {
 
 //====================================
 export async function viewLeaderboard() {
-  const res = await fetch(`${BASE_URL}/players`);
+  const res = await fetch(`${BASE_URL}/players/sorted-by-total`);
   const players = await res.json();
 
   console.log("\nLeaderboard:");
   players.forEach(p => {
-    const total = Object.values(p.solvedTimes || {})
-      .flat()
-      .reduce((a, b) => a + b, 0);
-    console.log(`- ${p.name}: ${total} seconds total`);
+    console.log(`- ${p.name}: ${p.total_solved} riddles solved`);
   });
 }
