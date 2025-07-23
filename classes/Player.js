@@ -32,16 +32,10 @@ export default class Player {
     });
 
     if (!response.ok) {
-      throw new Error("❌ Failed to report solved riddle");
+      throw new Error("Failed to report solved riddle");
     }
 
     return await response.json();
-  }
-
-  //--------------------------------------------------------------
-  showCompactStats() {
-    console.log(`🧍‍♂️ Player: ${this.name} (ID: ${this.id ?? "N/A"})`);
-    console.log(`סטטיסטיקות זמינות מהשרת בלבד ✅`);
   }
 
   //--------------------------------------------------------------
