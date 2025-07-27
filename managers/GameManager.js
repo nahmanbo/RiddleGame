@@ -1,21 +1,8 @@
-// managers/GameManager.js
-import readline from "readline";
+import readline from "readline-sync";
+import Player from "../models/Player.js";
 
 // GameManager – Handles login/signup/guest menu
 export default class GameManager {
-  //--- constructor ---
-  constructor() {
-    this.rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-  }
-
-  //--- ask a question ---
-  ask(question) {
-    return new Promise((resolve) => this.rl.question(question, resolve));
-  }
-
   //--- start the game manager ---
   async start() {
     await this.showMainMenu();
@@ -26,7 +13,7 @@ export default class GameManager {
     console.clear();
     console.log(`
 ===============================
-🔐 Welcome to the Riddle Game!
+Welcome to the Riddle Game!
 ===============================
 
 1. Login (existing user)
@@ -35,7 +22,8 @@ export default class GameManager {
 4. Exit
 `);
 
-    const choice = await this.ask("Enter your choice (1-4): ");
+    const choice = readline.question("Enter your choice (1-4): ");
+
     switch (choice.trim()) {
       case "1":
         console.log("TODO: Handle Login");
@@ -48,7 +36,6 @@ export default class GameManager {
         break;
       case "4":
         console.log("Goodbye!");
-        this.rl.close();
         process.exit(0);
       default:
         console.log("Invalid choice.");
@@ -59,10 +46,12 @@ export default class GameManager {
   //--- handle guest mode ---
   async handleGuest() {
     const guestName = "guest_" + Math.floor(Math.random() * 10000);
-    console.log(`\n🎭 Playing as ${guestName} (guest mode)`);
+    console.log(`\nPlaying as ${guestName} (guest mode)`);
 
-    const { default: Game } = await import("../game/Game.js");
-    const game = new Game(guestName); // assumes Game accepts username
+    const { default: Game } = await import("../models/Game.js");
+
+    const guest = await Player.createWithName(guestName, "guest");
+    const game = new Game(guest); 
     await game.play();
 
     await this.showMainMenu();

@@ -34,15 +34,21 @@ export default class Riddle {
   //--------------------------------------------------------------
   ask() {
     let answer;
+    const start = Date.now();
+  
     do {
       console.log(`Riddle ${this.id}: ${this.difficulty} ${this.subject}`);
       console.log(this.taskDescription);
       answer = readline.question("Your answer (or type 'exit' to stop): ");
-
-      if (answer.toLowerCase() === "exit") return "exit";
+  
+      if (answer.toLowerCase() === "exit") return { status: "exit", time: 0 };
       if (answer !== this.correctAnswer) console.log("Incorrect answer, try again.\n");
     } while (answer !== this.correctAnswer);
-
-    console.log("Correct!\n");
-  }
+  
+    const end = Date.now();
+    const time = Math.floor((end - start) / 1000);
+  
+    console.log(`Correct! (${time} seconds)\n`);
+    return { status: "correct", time };
+  }  
 }
