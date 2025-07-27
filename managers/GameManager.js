@@ -26,10 +26,10 @@ Welcome to the Riddle Game!
 
     switch (choice.trim()) {
       case "1":
-        console.log("TODO: Handle Login");
+        await this.handleSignUp();
         break;
       case "2":
-        console.log("TODO: Handle Sign Up");
+        await this.handleLogin();
         break;
       case "3":
         await this.handleGuest();
@@ -56,4 +56,49 @@ Welcome to the Riddle Game!
 
     await this.showMainMenu();
   }
+
+  //--- handle sign up ---
+  async handleSignUp() {
+    const name = readline.question("Choose a username: ");
+    const password = readline.question("Choose a password: ", { hideEchoBack: true });
+
+    const player = await Player.signUpWithCredentials(name, password);
+
+    if (!player) {
+      console.log("Sign up failed.");
+      await this.showMainMenu();
+      return;
+    }
+
+    console.log(`✅ Welcome, ${player.name}! Your account has been created.`);
+
+    const { default: Game } = await import("../models/Game.js");
+    const game = new Game(player);
+    await game.play();
+
+    await this.showMainMenu();
+  }
+
+  //--- handle login mode ---
+  async handleLogin() {
+    const name = readline.question("Enter your username: ");
+    const password = readline.question("Enter your password: ");
+
+    const player = await Player.loginWithCredentials(name, password);
+
+    if (!player) {
+      console.log("Login failed.");
+      await this.showMainMenu();
+      return;
+    }
+
+    console.log(`Welcome back, ${player.name}!`);
+
+    const { default: Game } = await import("../models/Game.js");
+    const game = new Game(player);
+    await game.play();
+
+    await this.showMainMenu();
+  }
 }
+
