@@ -1,3 +1,4 @@
+// managers/GameManager.js
 import readline from "readline";
 
 // GameManager – Handles login/signup/guest menu
@@ -43,7 +44,7 @@ export default class GameManager {
         console.log("TODO: Handle Sign Up");
         break;
       case "3":
-        console.log("TODO: Guest Mode");
+        await this.handleGuest();
         break;
       case "4":
         console.log("Goodbye!");
@@ -53,5 +54,17 @@ export default class GameManager {
         console.log("Invalid choice.");
         await this.showMainMenu();
     }
+  }
+
+  //--- handle guest mode ---
+  async handleGuest() {
+    const guestName = "guest_" + Math.floor(Math.random() * 10000);
+    console.log(`\n🎭 Playing as ${guestName} (guest mode)`);
+
+    const { default: Game } = await import("../game/Game.js");
+    const game = new Game(guestName); // assumes Game accepts username
+    await game.play();
+
+    await this.showMainMenu();
   }
 }
