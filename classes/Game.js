@@ -1,152 +1,85 @@
-import readline from "readline-sync";
-import Riddle from "./Riddle.js";
-import Player from "./Player.js";
+import readline from "readline";
+import fetch from "node-fetch";
 
-const BASE_URL = global.BASE_URL || "http://localhost:1212";
+const BASE_URL = "http://localhost:1212";
 
-//====================================
-// SECTION: PLAYER HELPERS
-//====================================
-
-//------------------------------------
-// Fetch all players
-//------------------------------------
-async function fetchPlayers() {
-  const res = await fetch(`${BASE_URL}/players`);
-  return res.json();
-}
-
-//------------------------------------
-// Create new player
-//------------------------------------
-async function createNewPlayer(name) {
-  const res = await fetch(`${BASE_URL}/players`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name }),
-  });
-  return res.json();
-}
-
-//------------------------------------
-// Get existing or create new player
-//------------------------------------
-async function getOrCreatePlayer(name) {
-  const players = await fetchPlayers();
-  let data = players.find(p => p.name === name);
-
-  if (!data) {
-    console.log("New player registered.");
-    data = await createNewPlayer(name);
+export default class Game {
+  //--- constructor ---
+  constructor(player) {
+    this.player = player;
+    this.rl = readline.createInterface({
+      input: process.stdin,
+      output: process.stdout,
+    });
   }
 
-  return Player.fromSupabaseRecord(data);
-}
-
-//====================================
-// SECTION: RIDDLE HELPERS
-//====================================
-
-//------------------------------------
-// Fetch riddles by difficulty
-//------------------------------------
-async function fetchRiddlesByDifficulty(difficulty) {
-  const res = await fetch(`${BASE_URL}/riddles/difficulty/${difficulty}`);
-  const data = await res.json();
-  return data.map(r => Object.assign(new Riddle(), r));
-}
-
-//------------------------------------
-// Ask riddle and handle solving
-//------------------------------------
-async function askAndHandleRiddle(riddle, player) {
-  const result = riddle.ask();
-  if (result === "exit") return true;
-
-  const seconds = Math.floor(Math.random() * 30) + 5;
-
-  try {
-    await player.solveRiddle(riddle.id, riddle.difficulty, seconds);
-    console.log(`✅ Solved in ${seconds} seconds`);
-  } catch (err) {
-    console.log("❌ Failed to save solution:", err.message);
+  //--- ask user for input ---
+  ask(question) {
+    return new Promise((resolve) => {
+      this.rl.question(question, (answer) => resolve(answer.trim()));
+    });
   }
 
-  return false;
-}
+  //--- main game loop ---
+  async play() {
+    console.log(`\nStarting the game for ${this.player.name} (${this.player.role})...\n`);
 
-//====================================
-// SECTION: GAME FLOW
-//====================================
-export async function playGame() {
-  const name = readline.question("\nEnter your name: ");
-  const player = await getOrCreatePlayer(name);
-  const difficulties = ["Easy", "Medium", "Hard"];
+    const difficulty = await this.ask("Choose difficulty (easy, medium, hard): ");
+    const riddles = await this.fetchRiddles(difficulty);
 
-  for (const difficulty of difficulties) {
-    const riddles = await fetchRiddlesByDifficulty(difficulty);
-    if (riddles.length === 0) {
-      console.log(`\nNo ${difficulty} riddles.`);
-      continue;
+    if (!riddles.length) {
+      console.log("No riddles found.");
+      return this.rl.close();
     }
 
-    console.log(`\nStarting ${difficulty} riddles:`);
+    for (const riddle of riddles) {
+      await this.playRiddle(riddle, difficulty);
+    }
 
-    for (const riddleData of riddles) {
-      const riddle = Object.assign(new Riddle(), riddleData);
-      const exit = await askAndHandleRiddle(riddle, player);
-      if (exit) return;
+    console.log("\nGame over!");
+    this.rl.close();
+  }
+
+  //--- fetch riddles by difficulty ---
+  async fetchRiddles(difficulty) {
+    try {
+      const res = await fetch(`${BASE_URL}/riddles/difficulty/${difficulty}`);
+      const data = await res.json();
+      return Array.isArray(data) ? data : [];
+    } catch (err) {
+      console.error("Failed to load riddles:", err.message);
+      return [];
     }
   }
 
-  console.log("\nGame over! (Stats available via leaderboard)");
-}
+  //--- handle a single riddle ---
+  async playRiddle(riddle, difficulty) {
+    console.log(`\n🔍 ${riddle.question}`);
+    const start = Date.now();
 
-//====================================
-// SECTION: ADMIN TOOLS
-//====================================
-export async function createRiddle() {
-  const newRiddle = await Riddle.createFromUserInput();
-  await fetch(`${BASE_URL}/riddles`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(newRiddle)
-  });
-  console.log("Riddle created.");
-}
+    const answer = await this.ask("Your answer: ");
+    const end = Date.now();
+    const time = Math.floor((end - start) / 1000);
 
-export async function showRiddles() {
-  const res = await fetch(`${BASE_URL}/riddles`);
-  const riddles = await res.json();
-  riddles.map(r => Object.assign(new Riddle(), r)).forEach(r => r.printRiddle());
-}
+    const correct = answer.toLowerCase() === riddle.answer.toLowerCase();
 
-export async function updateRiddle() {
-  const id = readline.questionInt("Enter riddle ID to update: ");
-  const riddle = await Riddle.createFromUserInput();
-  riddle.id = id;
+    if (correct) {
+      console.log(`Correct! (${time}s)`);
+    } else {
+      console.log(`Wrong. The correct answer was: ${riddle.answer}`);
+    }
 
-  await fetch(`${BASE_URL}/riddles/${id}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(riddle)
-  });
+    if (!this.player.isGuest()) {
+      await this.reportResult(riddle.id, difficulty, time);
+    }
+  }
 
-  console.log("Riddle updated.");
-}
-
-export async function deleteRiddle() {
-  const id = readline.questionInt("Enter riddle ID to delete: ");
-  await fetch(`${BASE_URL}/riddles/${id}`, { method: "DELETE" });
-  console.log("Riddle deleted.");
-}
-
-export async function viewLeaderboard() {
-  const res = await fetch(`${BASE_URL}/players/sorted-by-total`);
-  const players = await res.json();
-
-  console.log("\nLeaderboard:");
-  players.forEach(p => {
-    console.log(`- ${p.name}: ${p.total_solved} riddles solved`);
-  });
+  //--- send solved result to server ---
+  async reportResult(riddleId, difficulty, time) {
+    try {
+      await this.player.solveRiddle(riddleId, difficulty, time);
+    } catch (err) {
+      console.error("Failed to report result:", err.message);
+    }
+  }
 }
