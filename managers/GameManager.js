@@ -1,14 +1,13 @@
 import readline from "readline-sync";
 import Player from "../models/Player.js";
 
-// GameManager – Handles login/signup/guest menu
 export default class GameManager {
-  //--- start the game manager ---
+  // Start the main menu
   async start() {
     await this.showMainMenu();
   }
 
-  //--- show main menu ---
+  // Display the main menu
   async showMainMenu() {
     console.clear();
     console.log(`
@@ -22,83 +21,66 @@ Welcome to the Riddle Game!
 4. Exit
 `);
 
-    const choice = readline.question("Enter your choice (1-4): ");
+    const choice = readline.question("Enter your choice (1-4): ").trim();
 
-    switch (choice.trim()) {
-      case "1":
-        await this.handleSignUp();
-        break;
-      case "2":
-        await this.handleLogin();
-        break;
-      case "3":
-        await this.handleGuest();
-        break;
-      case "4":
-        console.log("Goodbye!");
-        process.exit(0);
-      default:
-        console.log("Invalid choice.");
-        await this.showMainMenu();
-    }
-  }
+    if (choice === "1") return await this.handleLogin();
+    if (choice === "2") return await this.handleSignUp();
+    if (choice === "3") return await this.handleGuest();
+    if (choice === "4") return console.log("Goodbye!"), process.exit(0);
 
-  //--- handle guest mode ---
-  async handleGuest() {
-    const guestName = "guest_" + Math.floor(Math.random() * 10000);
-    console.log(`\nPlaying as ${guestName} (guest mode)`);
-
-    const { default: Game } = await import("../models/Game.js");
-
-    const guest = await Player.createWithName(guestName, "guest");
-    const game = new Game(guest); 
-    await game.play();
-
+    console.log("Invalid choice.");
     await this.showMainMenu();
   }
 
-  //--- handle sign up ---
-  async handleSignUp() {
-    const name = readline.question("Choose a username: ");
-    const password = readline.question("Choose a password: ", { hideEchoBack: true });
-
-    const player = await Player.signUpWithCredentials(name, password);
-
-    if (!player) {
-      console.log("Sign up failed.");
-      await this.showMainMenu();
-      return;
-    }
-
-    console.log(`✅ Welcome, ${player.name}! Your account has been created.`);
-
-    const { default: Game } = await import("../models/Game.js");
-    const game = new Game(player);
-    await game.play();
-
-    await this.showMainMenu();
-  }
-
-  //--- handle login mode ---
+  // Handle user login
   async handleLogin() {
-    const name = readline.question("Enter your username: ");
-    const password = readline.question("Enter your password: ");
-
-    const player = await Player.loginWithCredentials(name, password);
+    const { name, password } = this.readCredentials();
+    const player = await Player.login(name, password);
 
     if (!player) {
       console.log("Login failed.");
-      await this.showMainMenu();
-      return;
+      return await this.showMainMenu();
     }
 
     console.log(`Welcome back, ${player.name}!`);
+    await this.startGame(player);
+  }
 
+  // Handle user sign up
+  async handleSignUp() {
+    const { name, password } = this.readCredentials();
+    const player = await Player.signup(name, password);
+
+    if (!player) {
+      console.log("Sign up failed.");
+      return await this.showMainMenu();
+    }
+
+    console.log(`Welcome, ${player.name}! Your account has been created.`);
+    await this.startGame(player);
+  }
+
+  // Handle guest mode
+  async handleGuest() {
+    const guestName = "guest_" + Math.floor(Math.random() * 10000);
+    console.log(`Playing as ${guestName} (guest mode)`);
+
+    const guest = await Player.createWithName(guestName, "guest");
+    await this.startGame(guest);
+  }
+
+  // Read username and password from input
+  readCredentials() {
+    const name = readline.question("Enter username: ");
+    const password = readline.question("Enter password: ");
+    return { name, password };
+  }
+
+  // Start game for the given player
+  async startGame(player) {
     const { default: Game } = await import("../models/Game.js");
     const game = new Game(player);
     await game.play();
-
     await this.showMainMenu();
   }
 }
-
