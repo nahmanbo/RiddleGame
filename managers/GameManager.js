@@ -1,14 +1,35 @@
 import readline from "readline-sync";
 import Player from "../models/Player.js";
+import AuthManager from "./AuthManager.js";
+import GuestManager from "./GuestManager.js";
+import MenuManager from "./MenuManager.js";
+import GameStarter from "./GameStarter.js";
 
+// Starts the main game flow
 export default class GameManager {
-  // Start the main menu
+
+  // Starts the GameManager
   async start() {
     await this.showMainMenu();
   }
 
-  // Display the main menu
+  // Displays the initial menu (auto-login or manual options)
   async showMainMenu() {
+    const player = Player.fromSavedToken();
+
+    if (player) {
+      console.log(`Welcome back, ${player.name}!`);
+
+      // Guest users go straight to the game
+      if (player.isGuest()) {
+        return await GameStarter.startGame(player);
+      }
+
+      // Registered users see logged-in menu
+      return await MenuManager.showLoggedInMenu(player);
+    }
+
+    // Show welcome screen with main options
     console.clear();
     console.log(`
 ===============================
@@ -23,64 +44,15 @@ Welcome to the Riddle Game!
 
     const choice = readline.question("Enter your choice (1-4): ").trim();
 
-    if (choice === "1") return await this.handleLogin();
-    if (choice === "2") return await this.handleSignUp();
-    if (choice === "3") return await this.handleGuest();
-    if (choice === "4") return console.log("Goodbye!"), process.exit(0);
-
-    console.log("Invalid choice.");
-    await this.showMainMenu();
-  }
-
-  // Handle user login
-  async handleLogin() {
-    const { name, password } = this.readCredentials();
-    const player = await Player.login(name, password);
-
-    if (!player) {
-      console.log("Login failed.");
-      return await this.showMainMenu();
+    // Handle menu selection
+    switch (choice) {
+      case "1": return await AuthManager.handleLogin();
+      case "2": return await AuthManager.handleSignUp();
+      case "3": return await GuestManager.handleGuest();
+      case "4": return console.log("Goodbye!"), process.exit(0);
+      default:
+        console.log("Invalid choice.");
+        return await this.showMainMenu();
     }
-
-    console.log(`Welcome back, ${player.name}!`);
-    await this.startGame(player);
-  }
-
-  // Handle user sign up
-  async handleSignUp() {
-    const { name, password } = this.readCredentials();
-    const player = await Player.signup(name, password);
-
-    if (!player) {
-      console.log("Sign up failed.");
-      return await this.showMainMenu();
-    }
-
-    console.log(`Welcome, ${player.name}! Your account has been created.`);
-    await this.startGame(player);
-  }
-
-  // Handle guest mode
-  async handleGuest() {
-    const guestName = "guest_" + Math.floor(Math.random() * 10000);
-    console.log(`Playing as ${guestName} (guest mode)`);
-
-    const guest = await Player.createWithName(guestName, "guest");
-    await this.startGame(guest);
-  }
-
-  // Read username and password from input
-  readCredentials() {
-    const name = readline.question("Enter username: ");
-    const password = readline.question("Enter password: ");
-    return { name, password };
-  }
-
-  // Start game for the given player
-  async startGame(player) {
-    const { default: Game } = await import("../models/Game.js");
-    const game = new Game(player);
-    await game.play();
-    await this.showMainMenu();
   }
 }

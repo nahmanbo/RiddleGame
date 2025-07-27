@@ -1,33 +1,32 @@
+import fs from "fs";
+import jwt from "jsonwebtoken";
+
 const BASE_URL = "http://localhost:1212";
 
 export default class Player {
-  constructor(name, id = null, role = "guest") {
+  constructor(name, id = null, role = "guest", token = null) {
     this.name = name;
     this.id = id;
     this.role = role;
+    this.token = token;
   }
 
-  // Create a guest player or fetch if already exists
-  static async createWithName(name, role = "guest") {
-    const res = await fetch(`${BASE_URL}/players`, {
+  // Create guest player using /players/guest
+  static async createGuest(name) {
+    const res = await fetch(`${BASE_URL}/players/guest`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, role })
+      body: JSON.stringify({ name })
     });
-
-    if (res.status === 409) {
-      const players = await (await fetch(`${BASE_URL}/players`)).json();
-      const existing = players.find(p => p.name === name);
-      return new Player(existing.name, existing.id, existing.role);
-    }
-
-    const data = await res.json();
-    return new Player(data.name, data.id, data.role);
+  
+    const { token, player } = await res.json();
+    return new Player(player.name, player.id, player.role, token);
   }
 
   // General auth request: login or signup
   static async authenticate(type, name, password) {
     const path = type === "login" ? "login" : "";
+
     try {
       const res = await fetch(`${BASE_URL}/players/${path}`, {
         method: "POST",
@@ -39,10 +38,12 @@ export default class Player {
       if (!res.ok) return null;
 
       const playerData = data.player || data;
-      return new Player(playerData.name, playerData.id, "registered");
+      const token = data.token || null;
+
+      return new Player(playerData.name, playerData.id, playerData.role, token);
     } catch (err) {
       console.error(`${type} error:`, err.message);
-      return null;
+      throw new Error(`${type} error: ${err.message}`);
     }
   }
 
@@ -56,11 +57,14 @@ export default class Player {
     return await Player.authenticate("login", name, password);
   }
 
-  // Send solved riddle to server
+  // Solve a riddle – sends POST to /players/solve
   async solveRiddle(riddleId, difficulty, time) {
     const response = await fetch(`${BASE_URL}/players/solve`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        ...(this.token && { Authorization: `Bearer ${this.token}` })
+      },
       body: JSON.stringify({
         player_id: this.id,
         riddle_id: riddleId,
@@ -85,4 +89,37 @@ export default class Player {
   isAdmin() {
     return this.role === "admin";
   }
+
+  // Optional: get auth token
+  getToken() {
+    return this.token;
+  }
+
+  static saveToken(token) {
+    fs.writeFileSync(".token", token);
+  }
+
+  static loadToken() {
+    try {
+      return fs.readFileSync(".token", "utf8").trim();
+    } catch {
+      return null;
+    }
+  }
+
+  // Create Player from saved token (if exists and valid)
+static fromSavedToken() {
+  try {
+    const token = fs.readFileSync(".token", "utf8").trim();
+    const decoded = jwt.decode(token);
+
+    if (!decoded || !decoded.name || !decoded.id || !decoded.role) return null;
+
+    const player = new Player(decoded.name, decoded.id, decoded.role, token);
+    return player;
+  } catch {
+    return null;
+  }
+}
+
 }
