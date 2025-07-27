@@ -1,6 +1,13 @@
 import readline from "readline-sync";
 import Player from "../models/Player.js";
 import GameStarter from "./GameStarter.js";
+import {
+  createRiddle,
+  updateRiddle,
+  deleteRiddle,
+  showRiddles,
+  viewLeaderboard
+} from "./RiddleController.js";
 
 // Handles menus for logged-in users (user/admin)
 export default class MenuManager {
@@ -23,7 +30,7 @@ Welcome ${player.name} (${player.role})
 
     switch (choice) {
       case "1": return await GameStarter.startGame(player);
-      case "2": return await this.showLeaderboard();
+      case "2": return await viewLeaderboard();
       case "3": return await this.showCrudMenu(player);
       case "0":
         Player.logout();
@@ -33,28 +40,6 @@ Welcome ${player.name} (${player.role})
         console.log("Invalid choice.");
         return await this.showLoggedInMenu(player);
     }
-  }
-
-  // Shows the leaderboard sorted by total riddles solved
-  static async showLeaderboard() {
-    try {
-      const res = await fetch("http://localhost:1212/players/sorted-by-total", {
-        headers: {
-          Authorization: "Bearer " + Player.loadToken()
-        }
-      });
-
-      const players = await res.json();
-      console.clear();
-      console.log("====== Leaderboard ======");
-      players.forEach((p, i) =>
-        console.log(`${i + 1}. ${p.name} – ${p.total_solved || 0} riddles`)
-      );
-    } catch (err) {
-      console.log("Failed to load leaderboard:", err.message);
-    }
-
-    readline.question("\nPress Enter to return...");
   }
 
   // Shows the CRUD menu for riddles based on player role
@@ -74,16 +59,16 @@ ${isAdmin ? "1. Add Riddle\n2. Update Riddle\n3. Delete Riddle\n4. List All Ridd
 
     if (isAdmin) {
       switch (choice) {
-        case "1": return console.log("TODO: Add riddle");
-        case "2": return console.log("TODO: Update riddle");
-        case "3": return console.log("TODO: Delete riddle");
-        case "4": return console.log("TODO: List riddles");
+        case "1": return await createRiddle();
+        case "2": return await updateRiddle();
+        case "3": return await deleteRiddle();
+        case "4": return await showRiddles();
         case "0": return;
       }
     } else {
       switch (choice) {
-        case "1": return console.log("TODO: Add riddle");
-        case "2": return console.log("TODO: List riddles");
+        case "1": return await createRiddle();
+        case "2": return await showRiddles();
         case "0": return;
       }
     }
