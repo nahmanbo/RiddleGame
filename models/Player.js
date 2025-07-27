@@ -121,5 +121,13 @@ static fromSavedToken() {
     return null;
   }
 }
-
+// Logs out the user by deleting the saved token
+static logout() {
+  try {
+    fs.unlinkSync(".token");
+    console.log("Logged out successfully.");
+  } catch {
+    console.warn("No token to delete. Already logged out?");
+  }
+}
 }

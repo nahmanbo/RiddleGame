@@ -12,10 +12,11 @@ import {
 // Handles menus for logged-in users (user/admin)
 export default class MenuManager {
 
-  // Shows the main menu for logged-in users
+  // Shows the main menu for logged-in users (looped)
   static async showLoggedInMenu(player) {
-    console.clear();
-    console.log(`
+    while (true) {
+      console.clear();
+      console.log(`
 ===============================
 Welcome ${player.name} (${player.role})
 ===============================
@@ -26,54 +27,65 @@ Welcome ${player.name} (${player.role})
 0. Logout
 `);
 
-    const choice = readline.question("Enter your choice: ").trim();
+      const choice = readline.question("Enter your choice: ").trim();
 
-    switch (choice) {
-      case "1": return await GameStarter.startGame(player);
-      case "2": return await viewLeaderboard();
-      case "3": return await this.showCrudMenu(player);
-      case "0":
-        Player.logout();
-        console.log("Logged out.");
-        return;
-      default:
-        console.log("Invalid choice.");
-        return await this.showLoggedInMenu(player);
+      switch (choice) {
+        case "1":
+          await GameStarter.startGame(player);
+          break;
+        case "2":
+          await viewLeaderboard();
+          break;
+        case "3":
+          await this.showCrudMenu(player);
+          break;
+        case "0":
+          Player.logout();
+          console.log("Logged out.");
+          return;
+        default:
+          console.log("Invalid choice.");
+      }
+
+      readline.question("\nPress Enter to return to menu...");
     }
   }
 
-  // Shows the CRUD menu for riddles based on player role
+  // Shows the CRUD menu for riddles based on player role (looped)
   static async showCrudMenu(player) {
     const isAdmin = player.isAdmin();
 
-    console.clear();
-    console.log(`
+    while (true) {
+      console.clear();
+      console.log(`
 ======== RIDDLE MENU (${player.role}) ========
 
 ${isAdmin ? "1. Add Riddle\n2. Update Riddle\n3. Delete Riddle\n4. List All Riddles" :
-             "1. Add Riddle\n2. List All Riddles"}
+               "1. Add Riddle\n2. List All Riddles"}
 0. Back
 `);
 
-    const choice = readline.question("Choose: ").trim();
+      const choice = readline.question("Choose: ").trim();
 
-    if (isAdmin) {
-      switch (choice) {
-        case "1": return await createRiddle();
-        case "2": return await updateRiddle();
-        case "3": return await deleteRiddle();
-        case "4": return await showRiddles();
-        case "0": return;
+      if (isAdmin) {
+        switch (choice) {
+          case "1": await createRiddle(); break;
+          case "2": await updateRiddle(); break;
+          case "3": await deleteRiddle(); break;
+          case "4": await showRiddles(); break;
+          case "0": return;
+          default: console.log("Invalid choice."); break;
+        }
+      } else {
+        switch (choice) {
+          case "1": await createRiddle(); break;
+          case "2": await showRiddles(); break;
+          case "0": return;
+          default: console.log("Invalid choice."); break;
+        }
       }
-    } else {
-      switch (choice) {
-        case "1": return await createRiddle();
-        case "2": return await showRiddles();
-        case "0": return;
-      }
+
+      readline.question("\nPress Enter to return to menu...");
     }
-
-    console.log("Invalid choice.");
-    await this.showCrudMenu(player);
   }
 }
