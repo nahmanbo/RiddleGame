@@ -1,5 +1,6 @@
 import Player from "../models/Player.js";
 import GameStarter from "./GameStarter.js";
+import { TokenManager } from "../utils/TokenManager.js";
 
 // Handles guest player creation and game start
 export default class GuestManager {
@@ -9,7 +10,7 @@ export default class GuestManager {
     const name = "guest_" + Math.floor(Math.random() * 10000);
     const player = await Player.createGuest(name);
 
-    Player.saveToken(player.token);
+    TokenManager.save(player.token);
     console.log(`Playing as ${player.name} (guest mode)`);
     console.log(`Your token: ${player.token}`);
     await GameStarter.startGame(player);

@@ -8,15 +8,15 @@ import {
   showRiddles,
   viewLeaderboard
 } from "./RiddleController.js";
+import { TokenManager } from "../utils/TokenManager.js";
 
 // Handles menus for logged-in users (user/admin)
 export default class MenuManager {
 
-  // Shows the main menu for logged-in users (looped)
-  static async showLoggedInMenu(player) {
-    while (true) {
-      console.clear();
-      console.log(`
+  // Displays the main menu interface
+  static printMainMenu(player) {
+    console.clear();
+    console.log(`
 ===============================
 Welcome ${player.name} (${player.role})
 ===============================
@@ -26,7 +26,25 @@ Welcome ${player.name} (${player.role})
 3. Riddle Menu
 0. Logout
 `);
+  }
 
+  // Displays the CRUD menu interface
+  static printCrudMenu(isAdmin, role) {
+    console.clear();
+    console.log(`
+======== RIDDLE MENU (${role}) ========
+`);
+    if (isAdmin) {
+      console.log("1. Add Riddle\n2. Update Riddle\n3. Delete Riddle\n4. List All Riddles\n0. Back\n");
+    } else {
+      console.log("1. Add Riddle\n2. List All Riddles\n0. Back\n");
+    }
+  }
+
+  // Shows the main menu for logged-in users (looped)
+  static async showLoggedInMenu(player) {
+    while (true) {
+      this.printMainMenu(player);
       const choice = readline.question("Enter your choice: ").trim();
 
       switch (choice) {
@@ -40,7 +58,7 @@ Welcome ${player.name} (${player.role})
           await this.showCrudMenu(player);
           break;
         case "0":
-          Player.logout();
+          TokenManager.delete();
           console.log("Logged out.");
           return;
         default:
@@ -53,18 +71,10 @@ Welcome ${player.name} (${player.role})
 
   // Shows the CRUD menu for riddles based on player role (looped)
   static async showCrudMenu(player) {
-    const isAdmin = player.isAdmin();
+    const isAdmin = player.hasRole("admin");
 
     while (true) {
-      console.clear();
-      console.log(`
-======== RIDDLE MENU (${player.role}) ========
-
-${isAdmin ? "1. Add Riddle\n2. Update Riddle\n3. Delete Riddle\n4. List All Riddles" :
-               "1. Add Riddle\n2. List All Riddles"}
-0. Back
-`);
-
+      this.printCrudMenu(isAdmin, player.role);
       const choice = readline.question("Choose: ").trim();
 
       if (isAdmin) {

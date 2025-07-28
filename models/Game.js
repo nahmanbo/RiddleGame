@@ -6,12 +6,12 @@ const BASE_URL = "http://localhost:1212";
 
 // Game – Main game logic using Riddle.ask()
 export default class Game {
-  //--- constructor ---
+  // Initializes the Game with the given player
   constructor(player) {
     this.player = player;
   }
 
-  //--- main game flow ---
+  // Starts the game flow: select difficulty, fetch riddles, play, report results
   async play() {
     console.log(`\nStarting the game for ${this.player.name} (${this.player.role})...\n`);
 
@@ -23,7 +23,6 @@ export default class Game {
       return;
     }
 
-    // convert to Riddle instances
     const riddles = riddlesData.map(r =>
       new Riddle(r.subject, r.difficulty, r.taskDescription, r.correctAnswer, r.id)
     );
@@ -36,13 +35,13 @@ export default class Game {
         break;
       }
 
-        await this.reportResult(riddle.id, riddle.difficulty, result.time);
+      await this.reportResult(riddle.id, riddle.difficulty, result.time);
     }
 
     console.log("\nGame over!");
   }
 
-  //--- fetch riddles from server ---
+  // Fetches riddles of the selected difficulty from the server
   async fetchRiddles(difficulty) {
     try {
       const res = await fetch(`${BASE_URL}/riddles/difficulty/${difficulty}`);
@@ -54,7 +53,7 @@ export default class Game {
     }
   }
 
-  //--- report result to server ---
+  // Reports solved riddle data to the server
   async reportResult(riddleId, difficulty, time) {
     try {
       await this.player.solveRiddle(riddleId, difficulty, time);
