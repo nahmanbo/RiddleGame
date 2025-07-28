@@ -93,7 +93,7 @@ flowchart TD
     B -->|User/Admin| D[Show Logged-In Menu]
     D --> E[Play Riddles]
     D --> F[View Leaderboard]
-    D --> G[Manage Riddles \\(Admin Only\\)]
+    D --> G[Manage Riddles - Admin Only]
 ```
 
 ---
