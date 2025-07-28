@@ -46,30 +46,14 @@ A full-stack interactive riddle game built with **Node.js**, using **Object-Orie
 
 ## ⚙️ Installation & Running
 
-### 1. Install dependencies:
+### 1. Install dependencies
 ```bash
-npm install
+npm install node-fetch jsonwebtoken readline-sync
 ```
 
 ### 2. Run the terminal game:
 ```bash
 node app.js
-```
-
-### 3. Run the backend server:
-Assuming it's in a separate folder (`/server`):
-```bash
-cd server/
-npm install
-node app.js
-```
-
-✅ Make sure to set up `.env` on the server:
-```env
-SUPABASE_URL=...
-SUPABASE_KEY=...
-MONGODB_URI=...
-JWT_SECRET=...
 ```
 
 ---
