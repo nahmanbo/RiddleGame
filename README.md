@@ -87,54 +87,50 @@ JWT_SECRET=...
 ## 🔁 Game Flow
 
 ```mermaid
+Always show details
+
+Copy
+from pathlib import Path
+
+medium_mermaid_readme = """# 🧠 Riddle Game (Terminal Edition)
+
+...
+
+## 🔁 Game Flow (Medium Detail)
+
+```mermaid
 flowchart TD
-    Start[Start app.js] --> HasToken{Token exists?}
-    
-    HasToken -- Yes --> Decode[Decode token]
-    Decode --> RoleCheck{Role?}
-    
-    RoleCheck -- guest --> StartGame[Start game immediately]
-    RoleCheck -- user --> UserMenu[Show user menu]
-    RoleCheck -- admin --> AdminMenu[Show admin menu]
-    
-    HasToken -- No --> ShowMainMenu[Show main menu]
-    ShowMainMenu --> Choice1[1. Login]
-    ShowMainMenu --> Choice2[2. Sign Up]
-    ShowMainMenu --> Choice3[3. Guest]
-    ShowMainMenu --> Choice4[4. Exit]
-    
-    Choice1 --> Login[Enter credentials]
-    Login --> LoginSuccess{Login successful?}
-    LoginSuccess -- Yes --> SaveToken[Save token] --> Decode
-    LoginSuccess -- No --> ShowMainMenu
+    A[Start game (app.js)] --> B{Token saved?}
+    B -- Yes --> C[Load player from token]
+    C --> D{Player role}
+    D -- Guest --> E[Play game immediately]
+    D -- User --> F[Show user menu]
+    D -- Admin --> G[Show admin menu]
 
-    Choice2 --> Signup[Enter new credentials]
-    Signup --> SignupSuccess{Signup successful?}
-    SignupSuccess -- Yes --> SaveToken2[Save token] --> Decode
-    SignupSuccess -- No --> ShowMainMenu
+    B -- No --> H[Show main menu]
+    H --> I[Login] --> J{Success?}
+    J -- Yes --> C
+    J -- No --> H
 
-    Choice3 --> GuestFlow[Create guest player]
-    GuestFlow --> SaveToken3[Save token] --> StartGame
+    H --> K[Sign Up] --> L{Success?}
+    L -- Yes --> C
+    L -- No --> H
 
-    UserMenu --> UserChoice1[1. Play game] --> StartGame
-    UserMenu --> UserChoice2[2. View leaderboard] --> Leaderboard
-    UserMenu --> UserChoice3[3. Add riddle] --> CreateRiddle
-    UserMenu --> UserChoice0[0. Logout] --> ClearToken --> ShowMainMenu
+    H --> M[Guest] --> N[Create guest player] --> E
+    H --> Z[Exit]
 
-    AdminMenu --> AdminChoice1[1. Play game] --> StartGame
-    AdminMenu --> AdminChoice2[2. View leaderboard] --> Leaderboard
-    AdminMenu --> AdminChoice3[3. Add riddle] --> CreateRiddle
-    AdminMenu --> AdminChoice4[4. Update riddle] --> UpdateRiddle
-    AdminMenu --> AdminChoice5[5. Delete riddle] --> DeleteRiddle
-    AdminMenu --> AdminChoice6[6. View all riddles] --> ShowRiddles
-    AdminMenu --> AdminChoice0[0. Logout] --> ClearToken --> ShowMainMenu
+    F --> F1[Play Game]
+    F --> F2[View Leaderboard]
+    F --> F3[Add Riddle]
+    F --> F4[Logout] --> H
 
-    CreateRiddle --> Done1[Return to menu]
-    UpdateRiddle --> Done2[Return to menu]
-    DeleteRiddle --> Done3[Return to menu]
-    ShowRiddles --> Done4[Return to menu]
-    Leaderboard --> Done5[Return to menu]
-
+    G --> G1[Play Game]
+    G --> G2[View Leaderboard]
+    G --> G3[Add Riddle]
+    G --> G4[Update Riddle]
+    G --> G5[Delete Riddle]
+    G --> G6[Show All Riddles]
+    G --> G7[Logout] --> H
 ```
 
 ---
