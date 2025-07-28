@@ -1,7 +1,7 @@
 import { readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 
-const RIDDLE_COUNTER_PATH = path.resolve("data/riddleId.txt");
+const RIDDLE_COUNTER_PATH = path.resolve("lib/riddleId.txt");
 
 // Returns the next available riddle ID from riddleId.txt
 export async function getNextRiddleId() {
