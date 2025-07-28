@@ -1,9 +1,9 @@
 import readline from "readline-sync";
-import Player from "../models/Player.js";
-import AuthManager from "./AuthManager.js";
-import GuestManager from "./GuestManager.js";
-import MenuManager from "./MenuManager.js";
-import GameStarter from "./GameStarter.js";
+import AuthManager from "../managers/AuthManager.js";
+import GuestManager from "../managers/GuestManager.js";
+import MenuManager from "../managers/MenuManager.js";
+import GameStarter from "../managers/GameStarter.js";
+import Player from "../core/Player.js";
 
 // Starts the main game flow
 export default class GameManager {
@@ -21,7 +21,7 @@ export default class GameManager {
       console.log(`Welcome back, ${player.name}!`);
 
       // Guest users go straight to the game
-      if (player.isGuest()) {
+      if (player.hasRole("guest")) {
         return await GameStarter.startGame(player);
       }
 

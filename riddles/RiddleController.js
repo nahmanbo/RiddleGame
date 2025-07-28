@@ -1,8 +1,18 @@
 import readline from "readline-sync";
-import Riddle from "../models/Riddle.js";
-import Player from "../models/Player.js";
+import Riddle from "./Riddle.js";
+import { TokenManager } from "../utils/TokenManager.js";
 
 const BASE_URL = "http://localhost:1212";
+
+// Generates authorization headers with optional content-type
+function authHeaders(includeContentType = true) {
+  const headers = {
+    "Accept": "application/json",
+    "Authorization": `Bearer ${TokenManager.load()}`
+  };
+  if (includeContentType) headers["Content-Type"] = "application/json";
+  return headers;
+}
 
 // Creates a new riddle and sends it to the server
 export async function createRiddle() {
@@ -10,11 +20,7 @@ export async function createRiddle() {
 
   await fetch(`${BASE_URL}/riddles`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": `Bearer ${Player.loadToken()}`
-    },
+    headers: authHeaders(),
     body: JSON.stringify(newRiddle)
   });
 
@@ -24,10 +30,7 @@ export async function createRiddle() {
 // Fetches and displays all riddles
 export async function showRiddles() {
   const res = await fetch(`${BASE_URL}/riddles`, {
-    headers: {
-      "Accept": "application/json",
-      "Authorization": `Bearer ${Player.loadToken()}`
-    }
+    headers: authHeaders(false)
   });
 
   const riddles = await res.json();
@@ -42,11 +45,7 @@ export async function updateRiddle() {
 
   await fetch(`${BASE_URL}/riddles/${id}`, {
     method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      "Accept": "application/json",
-      "Authorization": `Bearer ${Player.loadToken()}`
-    },
+    headers: authHeaders(),
     body: JSON.stringify(riddle)
   });
 
@@ -59,10 +58,7 @@ export async function deleteRiddle() {
 
   await fetch(`${BASE_URL}/riddles/${id}`, {
     method: "DELETE",
-    headers: {
-      "Authorization": `Bearer ${Player.loadToken()}`,
-      "Accept": "application/json"
-    }
+    headers: authHeaders(false)
   });
 
   console.log("Riddle deleted.");
@@ -72,10 +68,7 @@ export async function deleteRiddle() {
 export async function viewLeaderboard() {
   try {
     const res = await fetch(`${BASE_URL}/players/sorted-by-total`, {
-      headers: {
-        "Authorization": `Bearer ${Player.loadToken()}`,
-        "Accept": "application/json"
-      }
+      headers: authHeaders(false)
     });
 
     const players = await res.json();

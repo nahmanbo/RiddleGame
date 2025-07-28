@@ -1,5 +1,5 @@
 import readline from "readline-sync";
-import { getNextId } from "../utils/idHelper.js";
+import { getNextRiddleId } from "./idHelper.js";
 
 export default class Riddle {
   constructor(subject, difficulty, taskDescription, correctAnswer, id = null) {
@@ -17,7 +17,7 @@ export default class Riddle {
     const taskDescription = readline.question("Enter riddle task description: ");
     const correctAnswer = readline.question("Enter correct answer: ");
 
-    const id = await getNextId("riddles");
+    const id = await getNextRiddleId();
     return new Riddle(subject, difficulty, taskDescription, correctAnswer, id);
   }
   

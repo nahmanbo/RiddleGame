@@ -1,5 +1,5 @@
 import readline from "readline-sync";
-import Player from "../models/Player.js";
+import Player from "../core/Player.js";
 import GameStarter from "./GameStarter.js";
 import {
   createRiddle,
@@ -7,7 +7,7 @@ import {
   deleteRiddle,
   showRiddles,
   viewLeaderboard
-} from "./RiddleController.js";
+} from "../riddles/RiddleController.js";
 import { TokenManager } from "../utils/TokenManager.js";
 
 // Handles menus for logged-in users (user/admin)

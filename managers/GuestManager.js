@@ -1,4 +1,4 @@
-import Player from "../models/Player.js";
+import Player from "../core/Player.js";
 import GameStarter from "./GameStarter.js";
 import { TokenManager } from "../utils/TokenManager.js";
 

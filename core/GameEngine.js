@@ -1,6 +1,6 @@
 import fetch from "node-fetch";
 import readline from "readline-sync";
-import Riddle from "../models/Riddle.js";
+import Riddle from "../riddles/Riddle.js";
 
 const BASE_URL = "http://localhost:1212";
 

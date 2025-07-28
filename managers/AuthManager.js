@@ -1,5 +1,5 @@
 import readline from "readline-sync";
-import Player from "../models/Player.js";
+import Player from "../core/Player.js";
 import MenuManager from "./MenuManager.js";
 import GameManager from "./GameManager.js";
 import { TokenManager } from "../utils/TokenManager.js";
