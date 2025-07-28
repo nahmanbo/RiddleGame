@@ -88,12 +88,53 @@ JWT_SECRET=...
 
 ```mermaid
 flowchart TD
-    A[Start Game] --> B[Check Saved Token]
-    B -->|Guest| C[Start Game Immediately]
-    B -->|User/Admin| D[Show Logged-In Menu]
-    D --> E[Play Riddles]
-    D --> F[View Leaderboard]
-    D --> G[Manage Riddles - Admin Only]
+    Start[Start app.js] --> HasToken{Token exists?}
+    
+    HasToken -- Yes --> Decode[Decode token]
+    Decode --> RoleCheck{Role?}
+    
+    RoleCheck -- guest --> StartGame[Start game immediately]
+    RoleCheck -- user --> UserMenu[Show user menu]
+    RoleCheck -- admin --> AdminMenu[Show admin menu]
+    
+    HasToken -- No --> ShowMainMenu[Show main menu]
+    ShowMainMenu --> Choice1[1. Login]
+    ShowMainMenu --> Choice2[2. Sign Up]
+    ShowMainMenu --> Choice3[3. Guest]
+    ShowMainMenu --> Choice4[4. Exit]
+    
+    Choice1 --> Login[Enter credentials]
+    Login --> LoginSuccess{Login successful?}
+    LoginSuccess -- Yes --> SaveToken[Save token] --> Decode
+    LoginSuccess -- No --> ShowMainMenu
+
+    Choice2 --> Signup[Enter new credentials]
+    Signup --> SignupSuccess{Signup successful?}
+    SignupSuccess -- Yes --> SaveToken2[Save token] --> Decode
+    SignupSuccess -- No --> ShowMainMenu
+
+    Choice3 --> GuestFlow[Create guest player]
+    GuestFlow --> SaveToken3[Save token] --> StartGame
+
+    UserMenu --> UserChoice1[1. Play game] --> StartGame
+    UserMenu --> UserChoice2[2. View leaderboard] --> Leaderboard
+    UserMenu --> UserChoice3[3. Add riddle] --> CreateRiddle
+    UserMenu --> UserChoice0[0. Logout] --> ClearToken --> ShowMainMenu
+
+    AdminMenu --> AdminChoice1[1. Play game] --> StartGame
+    AdminMenu --> AdminChoice2[2. View leaderboard] --> Leaderboard
+    AdminMenu --> AdminChoice3[3. Add riddle] --> CreateRiddle
+    AdminMenu --> AdminChoice4[4. Update riddle] --> UpdateRiddle
+    AdminMenu --> AdminChoice5[5. Delete riddle] --> DeleteRiddle
+    AdminMenu --> AdminChoice6[6. View all riddles] --> ShowRiddles
+    AdminMenu --> AdminChoice0[0. Logout] --> ClearToken --> ShowMainMenu
+
+    CreateRiddle --> Done1[Return to menu]
+    UpdateRiddle --> Done2[Return to menu]
+    DeleteRiddle --> Done3[Return to menu]
+    ShowRiddles --> Done4[Return to menu]
+    Leaderboard --> Done5[Return to menu]
+
 ```
 
 ---
