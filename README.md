@@ -84,18 +84,6 @@ JWT_SECRET=...
 
 ---
 
-## 🔁 Game Flow
-
-```mermaid
-Always show details
-
-Copy
-from pathlib import Path
-
-medium_mermaid_readme = """# 🧠 Riddle Game (Terminal Edition)
-
-...
-
 ## 🔁 Game Flow (Medium Detail)
 
 ```mermaid
