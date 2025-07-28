@@ -100,37 +100,34 @@ medium_mermaid_readme = """# 🧠 Riddle Game (Terminal Edition)
 
 ```mermaid
 flowchart TD
-    A[Start game (app.js)] --> B{Token saved?}
-    B -- Yes --> C[Load player from token]
-    C --> D{Player role}
-    D -- Guest --> E[Play game immediately]
-    D -- User --> F[Show user menu]
-    D -- Admin --> G[Show admin menu]
+    A[Start app.js] --> B{Token saved}
+    B -- Yes --> C[Load player] --> D{Player role}
+    
+    D -- Guest --> E[Play game]
+    
+    D -- User --> F[User menu]
+    F --> F1[Play]
+    F --> F2[Leaderboard]
+    F --> F3[Add Riddle]
+    F --> F4[Logout] --> H
 
-    B -- No --> H[Show main menu]
-    H --> I[Login] --> J{Success?}
+    D -- Admin --> G[Admin menu]
+    G --> G1[Play]
+    G --> G2[Leaderboard]
+    G --> G3[CRUD Riddles]
+    G --> G4[Logout] --> H
+
+    B -- No --> H[Main menu]
+    H --> I[Login] --> J{Success}
     J -- Yes --> C
     J -- No --> H
 
-    H --> K[Sign Up] --> L{Success?}
+    H --> K[Sign Up] --> L{Success}
     L -- Yes --> C
     L -- No --> H
 
     H --> M[Guest] --> N[Create guest player] --> E
-    H --> Z[Exit]
-
-    F --> F1[Play Game]
-    F --> F2[View Leaderboard]
-    F --> F3[Add Riddle]
-    F --> F4[Logout] --> H
-
-    G --> G1[Play Game]
-    G --> G2[View Leaderboard]
-    G --> G3[Add Riddle]
-    G --> G4[Update Riddle]
-    G --> G5[Delete Riddle]
-    G --> G6[Show All Riddles]
-    G --> G7[Logout] --> H
+    H --> X[Exit]
 ```
 
 ---
