@@ -89,21 +89,11 @@ JWT_SECRET=...
 ```mermaid
 flowchart TD
     A[Start app.js] --> B{Token saved}
-    B -- Yes --> C[Load player] --> D{Player role}
+    B -- Yes --> C[Load player] --> D{Role}
     
     D -- Guest --> E[Play game]
-    
-    D -- User --> F[User menu]
-    F --> F1[Play]
-    F --> F2[Leaderboard]
-    F --> F3[Add Riddle]
-    F --> F4[Logout] --> H
-
-    D -- Admin --> G[Admin menu]
-    G --> G1[Play]
-    G --> G2[Leaderboard]
-    G --> G3[CRUD Riddles]
-    G --> G4[Logout] --> H
+    D -- User --> F[User menu: Play, Leaderboard, Add, Logout]
+    D -- Admin --> G[Admin menu: Play, Leaderboard, CRUD, Logout]
 
     B -- No --> H[Main menu]
     H --> I[Login] --> J{Success}
@@ -114,7 +104,7 @@ flowchart TD
     L -- Yes --> C
     L -- No --> H
 
-    H --> M[Guest] --> N[Create guest player] --> E
+    H --> M[Guest] --> N[Create guest] --> E
     H --> X[Exit]
 ```
 
